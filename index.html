@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>DTCE SOS — Redemption Camp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0D10;
+    --panel:#14171C;
+    --panel-edge:#23272E;
+    --text:#F2F0EB;
+    --text-dim:#9AA1AC;
+    --signal:#E4322F;
+    --signal-dim:#5C1815;
+    --amber:#F5A623;
+    --safe:#2ECC71;
+    --steel:#3A4750;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    padding:20px 20px 8px;
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--text-dim);
+    text-transform:uppercase;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-size:22px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    margin-top:4px;
+    text-transform:uppercase;
+  }
+  main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px 20px 40px;
+    gap:28px;
+  }
+
+  /* ---- Beacon / SOS button ---- */
+  .beacon-wrap{
+    position:relative;
+    width:220px;
+    height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .ring{
+    position:absolute;
+    border-radius:50%;
+    border:1.5px solid var(--signal);
+    opacity:0;
+    animation:pulse 2.4s ease-out infinite;
+  }
+  .ring.r1{width:100%;height:100%;animation-delay:0s;}
+  .ring.r2{width:100%;height:100%;animation-delay:0.8s;}
+  .ring.r3{width:100%;height:100%;animation-delay:1.6s;}
+  @keyframes pulse{
+    0%{transform:scale(0.55);opacity:0.7;}
+    100%{transform:scale(1.35);opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ring{animation:none;display:none;}
+  }
+  #sosBtn{
+    position:relative;
+    z-index:2;
+    width:172px;
+    height:172px;
+    border-radius:50%;
+    border:none;
+    background:radial-gradient(circle at 35% 30%, #FF4B44, var(--signal) 60%, #9E1E1B 100%);
+    color:#fff;
+    font-family:'Oswald',sans-serif;
+    font-size:28px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    cursor:pointer;
+    box-shadow:0 0 0 6px rgba(228,50,47,0.12), 0 20px 40px -12px rgba(228,50,47,0.55);
+    transition:transform 0.12s ease;
+  }
+  #sosBtn:active{transform:scale(0.96);}
+  #sosBtn:disabled{filter:grayscale(0.6);opacity:0.6;cursor:not-allowed;}
+
+  .hint{
+    font-size:13px;
+    color:var(--text-dim);
+    text-align:center;
+    max-width:280px;
+    line-height:1.5;
+  }
+
+  /* ---- Form panel ---- */
+  .panel{
+    width:100%;
+    max-width:420px;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:14px;
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:500;
+    color:var(--text-dim);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    background:#0F1216;
+    border:1px solid var(--panel-edge);
+    color:var(--text);
+    border-radius:8px;
+    padding:11px 12px;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+  }
+  .field textarea{resize:vertical;min-height:64px;}
+  .field select{appearance:none;}
+  .row2{display:flex;gap:10px;}
+  .row2 .field{flex:1;}
+
+  .loc-status{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12.5px;
+    color:var(--text-dim);
+    background:#0F1216;
+    border:1px solid var(--panel-edge);
+    border-radius:8px;
+    padding:10px 12px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--steel);flex-shrink:0;}
+  .dot.ok{background:var(--safe);}
+  .dot.bad{background:var(--signal);}
+  .dot.pending{background:var(--amber);animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:0.3;}}
+
+  #manualLocWrap{display:none;}
+
+  /* ---- Confirmation ---- */
+  #confirmScreen{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    text-align:center;
+    max-width:340px;
+  }
+  #confirmScreen .badge{
+    width:64px;height:64px;border-radius:50%;
+    background:rgba(46,204,113,0.12);
+    border:1.5px solid var(--safe);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;
+  }
+  #confirmScreen h2{
+    font-family:'Oswald',sans-serif;
+    font-size:19px;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+  }
+  #confirmScreen p{color:var(--text-dim);font-size:14px;line-height:1.5;}
+  #confirmScreen .ref{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--steel-light,#7C8894);
+    background:#0F1216;
+    border:1px solid var(--panel-edge);
+    padding:6px 12px;
+    border-radius:6px;
+  }
+  #newAlertBtn{
+    margin-top:6px;
+    background:none;
+    border:1px solid var(--panel-edge);
+    color:var(--text-dim);
+    padding:10px 18px;
+    border-radius:8px;
+    font-size:13px;
+    cursor:pointer;
+  }
+
+  footer{
+    text-align:center;
+    padding:14px;
+    font-size:11px;
+    color:var(--steel);
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  .error-msg{
+    color:var(--signal);
+    font-size:12.5px;
+    display:none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">DTCE Security · Redemption Camp</div>
+  <h1>Emergency SOS</h1>
+</header>
+
+<main id="mainScreen">
+  <div class="beacon-wrap">
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+    <div class="ring r3"></div>
+    <button id="sosBtn">SEND<br>SOS</button>
+  </div>
+  <p class="hint">Tap the button to alert DTCE Security right now. Fill in what you can below — even just tapping SOS with no details will still bring help.</p>
+
+  <div class="panel">
+    <div class="loc-status" id="locStatus">
+      <div class="dot pending" id="locDot"></div>
+      <span id="locText">Getting your location…</span>
+    </div>
+
+    <div class="field" id="manualLocWrap">
+      <label>Where are you? (describe it)</label>
+      <input type="text" id="manualLoc" placeholder="e.g. Near Camp Gate 3, behind the bookshop">
+    </div>
+
+    <div class="field">
+      <label>Your name (optional)</label>
+      <input type="text" id="name" placeholder="Enter your name">
+    </div>
+
+    <div class="field">
+      <label>Phone number (optional)</label>
+      <input type="tel" id="phone" placeholder="080...">
+    </div>
+
+    <div class="field">
+      <label>What's happening?</label>
+      <select id="category">
+        <option value="Physical Assault / Attack">Physical assault / attack</option>
+        <option value="Robbery / Theft">Robbery / theft</option>
+        <option value="Fire Outbreak">Fire outbreak</option>
+        <option value="Medical Emergency">Medical emergency</option>
+        <option value="Suspicious Person / Activity">Suspicious person / activity</option>
+        <option value="Harassment">Harassment</option>
+        <option value="Other Emergency">Other emergency</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Details (optional)</label>
+      <textarea id="details" placeholder="Anything security should know before they reach you"></textarea>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+</main>
+
+<main id="confirmScreen" style="display:none;">
+  <div class="badge">✓</div>
+  <h2>Security has been alerted</h2>
+  <p>Your SOS is now on the DTCE security dashboard. Stay where you are if it's safe to do so. If you can, keep your phone with you and reachable.</p>
+  <div class="ref" id="refCode"></div>
+  <div id="alertStatus" style="margin-top:10px; color:#9AA1AC; font-size:13px;">Status: New</div>
+  <button id="newAlertBtn">Send another alert</button>
+</main>
+
+<footer>DTCE SECURITY · IF THIS IS LIFE-THREATENING, ALSO SHOUT FOR NEARBY HELP</footer>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD3OhxnCfGWFDi2mBpcQIE2EA_eJazBiUU",
+    authDomain: "dtcesos.firebaseapp.com",
+    projectId: "dtcesos",
+    storageBucket: "dtcesos.firebasestorage.app",
+    messagingSenderId: "1088014206110",
+    appId: "1:1088014206110:web:a8ffc78a375ab59096a78f"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let coords = null;
+  let statusListener = null;
+  const locDot = document.getElementById('locDot');
+  const locText = document.getElementById('locText');
+  const manualWrap = document.getElementById('manualLocWrap');
+  const errorMsg = document.getElementById('errorMsg');
+  const sosBtn = document.getElementById('sosBtn');
+  const alertStatus = document.getElementById('alertStatus');
+
+  function requestLocation() {
+    if (!('geolocation' in navigator)) {
+      locDot.className = 'dot bad';
+      locText.textContent = "Location not supported on this device — describe it below";
+      manualWrap.style.display = 'block';
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        locDot.className = 'dot ok';
+        locText.textContent = "Location captured — you're good to go";
+      },
+      err => {
+        locDot.className = 'dot bad';
+        locText.textContent = "Couldn't get your location — please describe it below";
+        manualWrap.style.display = 'block';
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+  requestLocation();
+
+  sosBtn.addEventListener('click', async () => {
+    const manualLoc = document.getElementById('manualLoc').value.trim();
+
+    if (!coords && !manualLoc) {
+      errorMsg.textContent = "Please wait for location, or type where you are, before sending.";
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    errorMsg.style.display = 'none';
+    sosBtn.disabled = true;
+    sosBtn.textContent = "SENDING…";
+
+    try {
+      const docRef = await addDoc(collection(db, "alerts"), {
+        name: document.getElementById('name').value.trim() || "Anonymous",
+        phone: document.getElementById('phone').value.trim() || null,
+        category: document.getElementById('category').value,
+        details: document.getElementById('details').value.trim() || null,
+        lat: coords ? coords.lat : null,
+        lng: coords ? coords.lng : null,
+        locationText: manualLoc || null,
+        status: "new",
+        createdAt: serverTimestamp()
+      });
+
+      document.getElementById('refCode').textContent = "REF " + docRef.id.slice(-6).toUpperCase();
+      if (alertStatus) {
+        alertStatus.textContent = 'Status: New';
+      }
+      document.getElementById('mainScreen').style.display = 'none';
+      document.getElementById('confirmScreen').style.display = 'flex';
+      listenToAlertStatus(docRef);
+    } catch (e) {
+      console.error(e);
+      errorMsg.textContent = "Couldn't send — check your internet connection and try again.";
+      errorMsg.style.display = 'block';
+      sosBtn.disabled = false;
+      sosBtn.innerHTML = "SEND<br>SOS";
+    }
+  });
+
+  document.getElementById('newAlertBtn').addEventListener('click', () => {
+      if (statusListener) {
+        statusListener();
+        statusListener = null;
+      }
+      document.getElementById('confirmScreen').style.display = 'none';
+      document.getElementById('mainScreen').style.display = 'flex';
+      sosBtn.disabled = false;
+      sosBtn.innerHTML = "SEND<br>SOS";
+      document.getElementById('name').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('details').value = '';
+      document.getElementById('manualLoc').value = '';
+      if (alertStatus) {
+        alertStatus.textContent = 'Status: New';
+      }
+    });
+
+    function listenToAlertStatus(docRef) {
+      if (!docRef) return;
+      if (statusListener) {
+        statusListener();
+      }
+      const alertDoc = doc(db, "alerts", docRef.id);
+      statusListener = onSnapshot(alertDoc, (snapshot) => {
+        if (!snapshot.exists()) return;
+        const data = snapshot.data();
+        if (alertStatus) {
+          alertStatus.textContent = `Status: ${data.status || 'new'}`;
+        }
+      }, (error) => {
+        console.error('Status listener error:', error);
+      });
+    }
+    </script>
+</body>
+</html>
+
