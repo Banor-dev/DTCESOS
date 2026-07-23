@@ -235,15 +235,7 @@
 </header>
 
 <main id="mainScreen">
-  <div class="beacon-wrap">
-    <div class="ring r1"></div>
-    <div class="ring r2"></div>
-    <div class="ring r3"></div>
-    <button id="sosBtn">SEND<br>SOS</button>
-  </div>
-  <p class="hint">Tap the button to alert DTCE Security right now. Fill in what you can below — even just tapping SOS with no details will still bring help.</p>
-
-  <div class="panel">
+  <form class="panel" id="sosForm">
     <div class="loc-status" id="locStatus">
       <div class="dot pending" id="locDot"></div>
       <span id="locText">Getting your location…</span>
@@ -255,18 +247,18 @@
     </div>
 
     <div class="field">
-      <label>Your name (optional)</label>
-      <input type="text" id="name" placeholder="Enter your name">
+      <label>Your name</label>
+      <input type="text" id="name" placeholder="Enter your name" required>
     </div>
 
     <div class="field">
-      <label>Phone number (optional)</label>
-      <input type="tel" id="phone" placeholder="080...">
+      <label>Phone number</label>
+      <input type="tel" id="phone" placeholder="080..." required>
     </div>
 
     <div class="field">
       <label>What's happening?</label>
-      <select id="category">
+      <select id="category" required>
         <option value="Physical Assault / Attack">Physical assault / attack</option>
         <option value="Robbery / Theft">Robbery / theft</option>
         <option value="Fire Outbreak">Fire outbreak</option>
@@ -278,12 +270,20 @@
     </div>
 
     <div class="field">
-      <label>Details (optional)</label>
-      <textarea id="details" placeholder="Anything security should know before they reach you"></textarea>
+      <label>Details</label>
+      <textarea id="details" placeholder="Describe your exact location so we can find you easily (e.g. - I am in the Kitchen area beside the serving point)" required></textarea>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
+  </form>
+
+  <div class="beacon-wrap">
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+    <div class="ring r3"></div>
+    <button id="sosBtn" type="submit" form="sosForm">SEND<br>SOS</button>
   </div>
+  <p class="hint">Complete the form before sending your alert. Security needs these details to respond quickly.</p>
 </main>
 
 <main id="confirmScreen" style="display:none;">
@@ -346,8 +346,13 @@
   }
   requestLocation();
 
-  sosBtn.addEventListener('click', async () => {
+  document.getElementById('sosForm').addEventListener('submit', async event => {
+    event.preventDefault();
     const manualLoc = document.getElementById('manualLoc').value.trim();
+
+    if (!event.currentTarget.reportValidity()) {
+      return;
+    }
 
     if (!coords && !manualLoc) {
       errorMsg.textContent = "Please wait for location, or type where you are, before sending.";
