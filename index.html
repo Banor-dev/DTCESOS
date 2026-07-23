@@ -242,7 +242,7 @@
     </div>
 
     <div class="field" id="manualLocWrap">
-      <label>Where are you? (describe it)</label>
+      <label for="manualLoc">Exact location</label>
       <input type="text" id="manualLoc" placeholder="e.g. Near Camp Gate 3, behind the bookshop">
     </div>
 
@@ -325,6 +325,7 @@
 
   function requestLocation() {
     if (!('geolocation' in navigator)) {
+      document.getElementById('manualLoc').required = true;
       locDot.className = 'dot bad';
       locText.textContent = "Location not supported on this device — describe it below";
       manualWrap.style.display = 'block';
@@ -333,12 +334,14 @@
     navigator.geolocation.getCurrentPosition(
       pos => {
         coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        document.getElementById('manualLoc').required = false;
         locDot.className = 'dot ok';
         locText.textContent = "Location captured — you're good to go";
       },
       err => {
+        document.getElementById('manualLoc').required = true;
         locDot.className = 'dot bad';
-        locText.textContent = "Couldn't get your location — please describe it below";
+        locText.textContent = "Location unavailable — enter your exact location below";
         manualWrap.style.display = 'block';
       },
       { enableHighAccuracy: true, timeout: 10000 }
