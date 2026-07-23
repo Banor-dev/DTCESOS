@@ -323,29 +323,7 @@
   const sosBtn = document.getElementById('sosBtn');
   const alertStatus = document.getElementById('alertStatus');
 
-  function requestLocation() {
-    if (!('geolocation' in navigator)) {
-      locDot.className = 'dot bad';
-      locText.textContent = "Location not supported on this device — describe it below";
-      manualWrap.style.display = 'block';
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        locDot.className = 'dot ok';
-        locText.textContent = "Location captured — you're good to go";
-      },
-      err => {
-        locDot.className = 'dot bad';
-        locText.textContent = "Couldn't get your location — please describe it below";
-        manualWrap.style.display = 'block';
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  }
-  requestLocation();
-
+  
   document.getElementById('sosForm').addEventListener('submit', async event => {
     event.preventDefault();
     const manualLoc = document.getElementById('manualLoc').value.trim();
